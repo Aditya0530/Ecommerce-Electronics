@@ -30,7 +30,7 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class UserServiceImpl implements UserService {
-	
+
 	@Autowired
 	UserRepository userRepository;
 
@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private EmailService emailService;
-	
+
 	@Autowired
 	private PaymentService paymentService;
 
@@ -59,39 +59,38 @@ public class UserServiceImpl implements UserService {
 		LOGGER.info("User saved successfully: {}", user.getUsername());
 		return new UserDto(user);
 	}
-	
+
 	@Override
 	public Object loginAdmin(String username, String password) {
 		if ("Admin".equalsIgnoreCase(username) && "Admin".equalsIgnoreCase(password)) {
 			return userRepository.findAll();
-			
-	} else {
-		User user=userRepository.findAllByUsernameAndPassword(username, password);
-		if(user==null)  {
-			throw new InvalidCredentialsException("Incorrect User Details");
+
+		} else {
+			User user = userRepository.findAllByUsernameAndPassword(username, password);
+			if (user == null) {
+				throw new InvalidCredentialsException("Incorrect User Details");
+			}
+			return user;
 		}
-		return user;
-	}
-	
+
 	}
 
 	@Override
 	public User loginUser(String username, String password) {
-	User user =userRepository.findAllByUsernameAndPassword(username, password);
+		User user = userRepository.findAllByUsernameAndPassword(username, password);
 
-			if (user==null) {
-				throw new InvalidCredentialsException("Username And Password Incorrect");
-			} else {
-				String userEmail = user.getEmail();
-				try {
-					emailService.sendEmail(userEmail, "Login Successful", "You have successfully logged in.");
-				} catch (EmailSendingException e) {
-					LOGGER.error("Failed to send email", e);
-				    }
-				return user;
+		if (user == null) {
+			throw new InvalidCredentialsException("Username And Password Incorrect");
+		} else {
+			String userEmail = user.getEmail();
+			try {
+				emailService.sendEmail(userEmail, "Login Successful", "You have successfully logged in.");
+			} catch (EmailSendingException e) {
+				LOGGER.error("Failed to send email", e);
 			}
+			return user;
 		}
-
+	}
 
 	@Override
 	public Iterable<Product> getAll() {
@@ -122,7 +121,7 @@ public class UserServiceImpl implements UserService {
 				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
 		int newProductId = (Integer) productFromProductModule.get("productId");
 
-		Iterable<Product> existproduct= productRepository.findAll();
+		Iterable<Product> existproduct = productRepository.findAll();
 		for (Product product : existproduct) {
 
 			if (product.getProductId() == newProductId) {
@@ -144,6 +143,7 @@ public class UserServiceImpl implements UserService {
 		productToUpdate.setBrand((String) productFromProductModule.get("brand"));
 		productToUpdate.setPrice((Double) productFromProductModule.get("price"));
 		productToUpdate.setImage(imageData);
+
 		user.getProduct().add(productToUpdate);
 		userRepository.save(user);
 		LOGGER.info("Product with ID {} added to cart for user {}", productId, userId);
@@ -172,30 +172,33 @@ public class UserServiceImpl implements UserService {
 			orderRepository.save(currentOrder);
 			return "You Already Ordered This Product";
 		} else {
+
 			double totalAmount = managedProduct.getPrice() * order.getQuantity();
-			double sendAmount=order.getRequestAmount();
-			if(sendAmount==totalAmount) {
-			String paymentMessage=paymentService.processPayment(userId, productId, totalAmount);
-			
-			order.setOrderStatus(StatusOrder.CONFIRMED);
-			order.setTotalAmount(totalAmount);
-			order.setDeliverycharges(100);
-			order.setProduct(managedProduct);
-			user.getProduct().add(managedProduct);
-			user.getOrder().add(order);
+			double sendAmount = order.getRequestAmount();
+			if (sendAmount == totalAmount) {
+				String paymentMessage = paymentService.processPayment(userId, productId, totalAmount);
 
-			userRepository.save(user);
-			LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
+				order.setOrderStatus(StatusOrder.CONFIRMED);
+				order.setTotalAmount(totalAmount);
+				order.setDeliverycharges(100);
+				order.setProduct(managedProduct);
+				user.getProduct().add(managedProduct);
+				user.getOrder().add(order);
 
-			emailService.sendOrderConfirmationEmail(user, order);
-			LOGGER.info("Order confirmation email sent to user {}", userId);
-			
-			return paymentMessage +"Order Placed Successfully";
+				userRepository.save(user);
+				LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
+
+				emailService.sendOrderConfirmationEmail(user, order);
+				LOGGER.info("Order confirmation email sent to user {}", userId);
+
+				return paymentMessage + "Order Placed Successfully";
 			} else {
 				order.setOrderStatus(StatusOrder.PENDING);
-	            LOGGER.warn("Amount mismatch: Expected ₹{}, Received ₹{} from user {}", totalAmount, sendAmount, userId);
-	            return "Payment amount mismatch. Expected: ₹" + totalAmount + ", but received: ₹" + sendAmount + ". Order not placed.";
-	        }
+				LOGGER.warn("Amount mismatch: Expected ₹{}, Received ₹{} from user {}", totalAmount, sendAmount,
+						userId);
+				return "Payment amount mismatch. Expected: ₹" + totalAmount + ", but received: ₹" + sendAmount
+						+ ". Order not placed.";
+			}
 		}
 	}
 
@@ -214,64 +217,61 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public Map<String, Object> viewCart(int userId) {
 
-	    List<Product> productResponse = getProductByUserId(userId);
-	    List<Order> orderResponse = getOrderByUserId(userId);
+		List<Product> productResponse = getProductByUserId(userId);
+		List<Order> orderResponse = getOrderByUserId(userId);
 
-	    List<Map<String, Object>> listProduct = new ArrayList<>();
-	    Map<String, Object> responseMap = new LinkedHashMap<>();
+		List<Map<String, Object>> listProduct = new ArrayList<>();
+		Map<String, Object> responseMap = new LinkedHashMap<>();
 
-	    double totalAmount = 0.0;
-	    double deliveryCharges = 0.0;
-	    double grandTotal = 0.0;
+		double totalAmount = 0.0;
+		double deliveryCharges = 0.0;
+		double grandTotal = 0.0;
 
-	    for (Order order : orderResponse) {
-	        Product product = order.getProduct();
-	        Map<String, Object> orderedProduct = new LinkedHashMap<>();
+		for (Order order : orderResponse) {
+			Product product = order.getProduct();
+			Map<String, Object> orderedProduct = new LinkedHashMap<>();
 
-	        orderedProduct.put("productId", product.getProductId());
-	        orderedProduct.put("productName", product.getProductName());
-	        orderedProduct.put("productImg", product.getImage());
-	        orderedProduct.put("productBrand", product.getBrand());
-	        orderedProduct.put("productQuantity", order.getQuantity());
-	        orderedProduct.put("deliveryCharges", order.getDeliverycharges());
-	        orderedProduct.put("productPrice", product.getPrice());
-	        orderedProduct.put("orderStatus",order.getOrderStatus());
-	        orderedProduct.put("requestAmount",order.getRequestAmount());
-	        orderedProduct.put("orderId", order.getOrderId());
-	        totalAmount += product.getPrice() * order.getQuantity();
-	        deliveryCharges += order.getDeliverycharges();
+			orderedProduct.put("productId", product.getProductId());
+			orderedProduct.put("productName", product.getProductName());
+			orderedProduct.put("productImg", product.getImage());
+			orderedProduct.put("productBrand", product.getBrand());
+			orderedProduct.put("productQuantity", order.getQuantity());
+			orderedProduct.put("deliveryCharges", order.getDeliverycharges());
+			orderedProduct.put("productPrice", product.getPrice());
+			orderedProduct.put("orderStatus", order.getOrderStatus());
+			orderedProduct.put("requestAmount", order.getRequestAmount());
+			orderedProduct.put("orderId", order.getOrderId());
+			totalAmount += product.getPrice() * order.getQuantity();
+			deliveryCharges += order.getDeliverycharges();
 
-	        listProduct.add(orderedProduct);
-	    }
+			listProduct.add(orderedProduct);
+		}
 
-	    grandTotal = totalAmount + deliveryCharges;
+		grandTotal = totalAmount + deliveryCharges;
 
-	    // Sum all product prices in cartSummary, assuming you want sum of all products in the cart
-	    double totalPrice = 0.0;
-	    for (Product product : productResponse) {
-	        totalPrice += product.getPrice();
-	    }
+		// Sum all product prices in cartSummary, assuming you want sum of all products
+		// in the cart
+		double totalPrice = 0.0;
+		for (Product product : productResponse) {
+			totalPrice += product.getPrice();
+		}
 
-	    responseMap.put("orderSummary", Map.of(
-	        "grandTotal", grandTotal,
-	        "orderedProduct", listProduct
-	    ));
-	    responseMap.put("cartSummary", Map.of(
-	        "totalPrice", totalPrice,
-	        "cartProduct", productResponse
-	    ));
+		responseMap.put("orderSummary", Map.of("grandTotal", grandTotal, "orderedProduct", listProduct));
+		responseMap.put("cartSummary", Map.of("totalPrice", totalPrice, "cartProduct", productResponse));
 
-	    return responseMap;
+		return responseMap;
 	}
 
 	@Override
 	public void removeFromCart(int userId, int productId) {
-	   
-		User user = userRepository.findById(userId).orElseThrow(()-> new UserIdNotFoundException("Please input correct user id"));
-        user.getProduct().removeIf(product -> product.getProductId()==productId);
-        productRepository.deleteById(productId);
-        
+
+		User user = userRepository.findById(userId)
+				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
+		user.getProduct().removeIf(product -> product.getProductId() == productId);
+		productRepository.deleteById(productId);
+
 	}
+
 	@Override
 	public List<Order> getOrderByUserId(int userId) {
 
@@ -284,5 +284,4 @@ public class UserServiceImpl implements UserService {
 		return productRepository.getProductsByUserId(userId);
 	}
 
-	
- }
+}

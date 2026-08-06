@@ -1,5 +1,6 @@
 package com.ecommerce.main.controller;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import jakarta.validation.Valid;
 @RequestMapping("/user")
 
 public class UserController {
+
 	@Autowired
 	UserService userService;
 
@@ -41,8 +43,7 @@ public class UserController {
 	}
 
 	@GetMapping("/login/{username}/{password}")
-	public ResponseEntity<Object> login(@PathVariable("username") String username,
-			@PathVariable("password") String password) {
+	public ResponseEntity<Object> login(@PathVariable String username, @PathVariable String password) {
 		Object user = userService.loginAdmin(username, password);
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
@@ -54,50 +55,46 @@ public class UserController {
 	}
 
 	@GetMapping("/search_ProductByName/{productName}")
-	public ResponseEntity<Iterable<Product>> getproductByName(@PathVariable("productName") String productName) {
+	public ResponseEntity<Iterable<Product>> getproductByName(@PathVariable String productName) {
 		Iterable<Product> p = userService.getByName(productName);
 		return new ResponseEntity<Iterable<Product>>(p, HttpStatus.OK);
 	}
 
 	@PutMapping("/add/{userId}/{productId}")
-	public ResponseEntity<String> updateUserProducts(@PathVariable("userId") int userId,
-			@PathVariable("productId") int productId) {
+	public ResponseEntity<String> updateUserProducts(@PathVariable int userId, @PathVariable int productId) {
 		userService.addToCart(userId, productId);
 		return new ResponseEntity<String>("Products updated successfully", HttpStatus.OK);
 
 	}
 
 	@PatchMapping("/place_Order/{userId}/{productId}")
-	public ResponseEntity<String> purchaseProduct(@PathVariable("userId") int userId,
-			@PathVariable("productId") int productId, @RequestBody Order order) {
+	public ResponseEntity<String> purchaseProduct(@PathVariable int userId, @PathVariable int productId,
+			@RequestBody Order order) {
 		String msg = userService.placeOrder(userId, productId, order);
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}
 
 	@PatchMapping("/order_Status/{orderId}/{orderStatus}")
-	public ResponseEntity<String> changeStatus(@PathVariable("orderId") int orderId,
-			@PathVariable("orderStatus") StatusOrder orderStatus) {
+	public ResponseEntity<String> changeStatus(@PathVariable int orderId, @PathVariable StatusOrder orderStatus) {
 		userService.orderStatus(orderId, orderStatus);
 		return new ResponseEntity<>("Order Status Updated", HttpStatus.OK);
 	}
 
 	@GetMapping("/view_Cart/{userId}")
-	public ResponseEntity<Map<String, Object>> viewCart(@PathVariable("userId") int userId) {
+	public ResponseEntity<Map<String, Object>> viewCart(@PathVariable int userId) {
 		Map<String, Object> mapProduct = userService.viewCart(userId);
 		return new ResponseEntity<>(mapProduct, HttpStatus.OK);
 	}
 
 	@DeleteMapping("/remove/{userId}/{productId}")
-	public ResponseEntity<String> removeUserProducts(@PathVariable("userId") int userId,
-			@PathVariable("productId") int productId) {
+	public ResponseEntity<String> removeUserProducts(@PathVariable int userId, @PathVariable int productId) {
 		userService.removeFromCart(userId, productId);
 		return new ResponseEntity<String>("Products Remove successfully", HttpStatus.OK);
 
 	}
 
 	@GetMapping("/loginUser/{username}/{password}")
-	public ResponseEntity<User> loginUser(@PathVariable("username") String username,
-			@PathVariable("password") String password) {
+	public ResponseEntity<User> loginUser(@PathVariable String username, @PathVariable String password) {
 		User user = userService.loginUser(username, password);
 		return new ResponseEntity<>(user, HttpStatus.OK);
 	}
