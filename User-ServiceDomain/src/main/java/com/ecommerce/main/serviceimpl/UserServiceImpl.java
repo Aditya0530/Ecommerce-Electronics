@@ -129,6 +129,21 @@ public class UserServiceImpl implements UserService {
 				throw new DuplicateProductFoundException("Product id already present");
 			}
 		}
+		
+		
+		// here getting the product quantity available
+	    int quantityAvailable = (Integer) productFromProductModule.get("quantityAvailable");
+	    
+	    if(quantityAvailable <= 0) {
+	        throw new RuntimeException("Product is out of stock");
+	    }
+	    
+	    // here decrease the product quantity available by 1
+	    restTemplate.put("http://localhost:9292/product/updateQuantity/" + (quantityAvailable - 1) + "/" + productId, null);
+		
+		
+		
+	    
 		List<Map<String, Object>> productImages = (List<Map<String, Object>>) productFromProductModule
 				.get("productImages");
 
