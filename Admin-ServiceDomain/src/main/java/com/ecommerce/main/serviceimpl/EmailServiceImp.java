@@ -38,14 +38,23 @@ public class EmailServiceImp implements EmailService {
 		String message = "Dear " + employeeEmail.getName() + ",\n\n" + "Welcome to [Your E-Commerce Company]!\n"
 				+ "We are excited to have you on board.\n\n";
 		if (employeeEmail.getInventoryRole() == InventoryRole.ADMIN) {
-			message += "As an *Admin*, you have full access to manage the platform, oversee operations, and ensure smooth workflow. "
-					+ "Your leadership is vital in maintaining efficiency across all departments.\n\n";
+			message += """
+                    As an *Admin*, you have full access to manage the platform, oversee operations, and ensure smooth workflow. \
+                    Your leadership is vital in maintaining efficiency across all departments.
+                    
+                    """;
 		} else if (employeeEmail.getInventoryRole() == InventoryRole.ORDERDELIVERY_HEAD) {
-			message += "As the *Order Delivery Head*, you will oversee order dispatch, manage logistics, and ensure timely deliveries. "
-					+ "Your role is essential in providing customers with a seamless shopping experience.\n\n";
+			message += """
+                    As the *Order Delivery Head*, you will oversee order dispatch, manage logistics, and ensure timely deliveries. \
+                    Your role is essential in providing customers with a seamless shopping experience.
+                    
+                    """;
 		} else if (employeeEmail.getInventoryRole() == InventoryRole.HEAD) {
-			message += "As an *Employee*, you play a key role in supporting our e-commerce operations. "
-					+ "Your contributions are valuable in helping us grow and serve our customers better.\n\n";
+			message += """
+                    As an *Employee*, you play a key role in supporting our e-commerce operations. \
+                    Your contributions are valuable in helping us grow and serve our customers better.
+                    
+                    """;
 		} else {
 			message += "You have been assigned a role within our company. We look forward to working with you.\n\n";
 		}

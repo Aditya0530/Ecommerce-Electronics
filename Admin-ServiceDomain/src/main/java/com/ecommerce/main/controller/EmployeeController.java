@@ -43,7 +43,7 @@ public class EmployeeController {
 	}
 	
 	@PutMapping("/updateAll/{empId}")
-	public ResponseEntity<String> updateProduct(@PathVariable("empId") int empId,
+	public ResponseEntity<String> updateProduct(@PathVariable int empId,
 			@RequestPart("employee") String employeeJson, @RequestPart("imageData") MultipartFile multipartFile) {
 		employeeservice.updateEmployee(empId, employeeJson, multipartFile);
 		return new ResponseEntity<String>("Update Successful", HttpStatus.OK);
