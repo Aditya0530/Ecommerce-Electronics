@@ -15,5 +15,7 @@ public interface EmployeeService {
 	
     public Iterable<Employee> getEmployees();
 
+	public void deleteEmployeeCode(int empId);
+
 
 }

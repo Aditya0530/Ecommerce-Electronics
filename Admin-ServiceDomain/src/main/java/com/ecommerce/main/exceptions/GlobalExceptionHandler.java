@@ -51,5 +51,10 @@ public class GlobalExceptionHandler {
 	    return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
 	}
 	
-
+	@ExceptionHandler(EmployeeNotFoundException.class)
+	public ResponseEntity<String> handleEmployeeNotFoundException(EmployeeNotFoundException e) {
+		return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+	}
+	
+	
 }

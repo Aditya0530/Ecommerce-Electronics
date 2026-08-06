@@ -22,6 +22,7 @@ import com.ecommerce.main.dto.MailDetailsDto;
 import com.ecommerce.main.enums.InventoryRole;
 import com.ecommerce.main.exceptions.ImageNotUpdateException;
 import com.ecommerce.main.exceptions.InvalidCredentialsException;
+import com.ecommerce.main.exceptions.EmployeeNotFoundException;
 import com.ecommerce.main.exceptions.FileNotSavedException;
 import com.ecommerce.main.exceptions.ValidationException;
 import com.ecommerce.main.model.Employee;
@@ -180,6 +181,24 @@ public class EmployeeServiceImpl implements EmployeeService {
 	public Iterable<Employee> getEmployees() {
 		// TODO Auto-generated method stub
 		return employeeRepository.findAll();
+	}
+
+
+
+	@Override
+	public void deleteEmployeeCode(int empId) {
+		 try {
+			    if (employeeRepository.existsById(empId)) {
+			      employeeRepository.deleteById(empId);
+			      log.info("Employee with ID {} deleted successfully", empId);
+			    } else {
+			      log.error("Employee with ID {} not found", empId);
+			      throw new EmployeeNotFoundException("Employee not found with ID " + empId);
+			    }
+			  } catch (Exception e) {
+			    log.error("Error deleting employee with ID {}", empId, e);
+			    throw new RuntimeException("Error deleting employee", e);
+			  }
 	}
 
 
