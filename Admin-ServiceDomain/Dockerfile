@@ -6,4 +6,5 @@ COPY target/Admin-ServiceDomain-0.0.1-SNAPSHOT.jar app.jar
 
 EXPOSE 9293
 
+
 ENTRYPOINT ["java", "-jar", "app.jar"]
