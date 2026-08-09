@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # Ecommerce-UserService
 =======
 <<<<<<< HEAD
@@ -21,4 +22,7 @@ Project For Buying Electronics Online
 >>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
 >>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
 >>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
+>>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
+=======
+# Ecommerce-Electronics
 >>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
