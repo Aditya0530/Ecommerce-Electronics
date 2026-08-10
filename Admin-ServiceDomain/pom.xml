@@ -12,7 +12,7 @@
 	<groupId>com.ecommerce.main</groupId>
 	<artifactId>Admin-ServiceDomain</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>Admin-ServiceDomain</name>
 	<description>Demo project for Spring Boot</description>
 	<url />
