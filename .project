@@ -1,6 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
+<<<<<<< HEAD
+	<name>Ecommerce-UserService</name>
+=======
+<<<<<<< HEAD
+	<name>Ecommerce-PrductService</name>
+=======
 	<name>Ecommerce-AdminService</name>
+>>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
+>>>>>>> branch 'main' of https://github.com/Aditya0530/Ecommerce-Electronics.git
 	<comment></comment>
 	<projects>
 	</projects>
