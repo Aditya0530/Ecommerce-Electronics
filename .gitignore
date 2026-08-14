@@ -1,0 +1,26 @@
+# Maven
+target/
+*/target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Compiled files
+bin/
+*/bin/
+*.class
+
+# Logs
+*.log
+
+# IDE
+.idea/
+.vscode/
+
+# Uploads
+*/uploads/
+
+# Environment
+.env
