@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Iterable<Product> getAll() {
-		String url = "http://localhost:9292/product/getAll";
+		String url = "http://PRODUCT-SERVICEDOMAIN/product/getAll";
 		Iterable<Product> response = restTemplate.getForObject(url, Iterable.class);
 		return response;
 	}
@@ -107,7 +107,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Iterable<Product> getByName(String productName) {
-		String url = "http://localhost:9292/product/getByName/" + productName;
+		String url = "http://PRODUCT-SERVICEDOMAIN/product/getByName/" + productName;
 		Iterable<Product> product = restTemplate.getForObject(url, Iterable.class);
 		return product;
 	}
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
 	public void addToCart(int userId, int productId) {
 
 		Map<String, Object> productFromProductModule = restTemplate
-				.getForObject("http://localhost:9292/product/getById/" + productId, Map.class);
+				.getForObject("http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId, Map.class);
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
 		int newProductId = (Integer) productFromProductModule.get("productId");
@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
 	    }
 	    
 	    // here decrease the product quantity available by 1
-	    restTemplate.put("http://localhost:9292/product/updateQuantity/" + (quantityAvailable - 1) + "/" + productId, null);
+	    restTemplate.put("http://PRODUCT-SERVICEDOMAIN/product/updateQuantity/" + (quantityAvailable - 1) + "/" + productId, null);
 		
 		
 		
@@ -170,7 +170,7 @@ public class UserServiceImpl implements UserService {
 	public String placeOrder(int userId, int productId, Order order) {
 		LOGGER.info("Purchase request by user {} for product {}", userId, productId);
 
-		String productUrl = "http://localhost:9292/product/getById/" + productId;
+		String productUrl = "http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId;
 		Product productFromService = restTemplate.getForObject(productUrl, Product.class);
 
 		User user = userRepository.findById(userId)
