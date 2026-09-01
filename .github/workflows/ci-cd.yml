@@ -45,3 +45,18 @@ jobs:
       - name: Build Eureka Registry
         working-directory: Eureka-Registry
         run: mvn clean package -DskipTests
+
+      - name: Build Product Docker Image
+        run: docker build -t product-service:latest ./Product-ServiceDomain
+
+      - name: Build User Docker Image
+        run: docker build -t user-service:latest ./User-ServiceDomain
+
+      - name: Build Admin Docker Image
+        run: docker build -t admin-service:latest ./Admin-ServiceDomain
+
+      - name: Build API Gateway Docker Image
+        run: docker build -t api-gateway:latest ./API-Gateway
+
+      - name: Build Eureka Docker Image
+        run: docker build -t eureka-registry:latest ./Eureka-Registry
