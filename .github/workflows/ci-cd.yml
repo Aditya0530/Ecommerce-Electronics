@@ -57,6 +57,3 @@ jobs:
 
       - name: Build API Gateway Docker Image
         run: docker build -t api-gateway:latest ./API-Gateway
-
-      - name: Build Eureka Docker Image
-        run: docker build -t eureka-registry:latest ./Eureka-Registry
