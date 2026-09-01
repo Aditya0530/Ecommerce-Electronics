@@ -9,172 +9,91 @@ on:
     branches:
       - main
 
-
 jobs:
-
   build-and-test:
-
     runs-on: ubuntu-latest
 
     steps:
 
-      # ==========================================
       # 1. Checkout Source Code
-      # ==========================================
       - name: Checkout Code
         uses: actions/checkout@v4
 
-
-      # ==========================================
       # 2. Setup Java 17
-      # ==========================================
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
-
-      # ==========================================
       # 3. Build Product Service
-      # ==========================================
       - name: Build Product Service
         working-directory: Product-ServiceDomain
         run: mvn clean package -DskipTests
 
-
-      # ==========================================
       # 4. Build User Service
-      # ==========================================
       - name: Build User Service
         working-directory: User-ServiceDomain
         run: mvn clean package -DskipTests
 
-
-      # ==========================================
       # 5. Build Admin Service
-      # ==========================================
       - name: Build Admin Service
         working-directory: Admin-ServiceDomain
         run: mvn clean package -DskipTests
 
-
-      # ==========================================
       # 6. Build API Gateway
-      # ==========================================
       - name: Build API Gateway
         working-directory: API-Gateway
         run: mvn clean package -DskipTests
 
-
-      # ==========================================
       # 7. Build Eureka Registry
-      # ==========================================
       - name: Build Eureka Registry
         working-directory: Eureka-Registry
         run: mvn clean package -DskipTests
 
-
-      # ==========================================
       # 8. Login to Docker Hub
-      # ==========================================
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
-
-      # ==========================================
       # 9. Build Product Docker Image
-      # ==========================================
       - name: Build Product Docker Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-product:latest \
-            ./Product-ServiceDomain
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-product:latest ./Product-ServiceDomain
 
-
-      # ==========================================
       # 10. Build User Docker Image
-      # ==========================================
       - name: Build User Docker Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-user:latest \
-            ./User-ServiceDomain
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-user:latest ./User-ServiceDomain
 
-
-      # ==========================================
       # 11. Build Admin Docker Image
-      # ==========================================
       - name: Build Admin Docker Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-admin:latest \
-            ./Admin-ServiceDomain
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-admin:latest ./Admin-ServiceDomain
 
-
-      # ==========================================
       # 12. Build API Gateway Docker Image
-      # ==========================================
       - name: Build API Gateway Docker Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-apigateway:latest \
-            ./API-Gateway
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-apigateway:latest ./API-Gateway
 
-
-      # ==========================================
       # 13. Build Eureka Docker Image
-      # ==========================================
       - name: Build Eureka Docker Image
-        run: |
-          docker build \
-            -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-eureka-registry:latest \
-            ./Eureka-Registry
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/ecommerce-eureka-registry:latest ./Eureka-Registry
 
-
-      # ==========================================
       # 14. Push Product Image
-      # ==========================================
       - name: Push Product Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/ecommerce-product:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ecommerce-product:latest
 
-
-      # ==========================================
       # 15. Push User Image
-      # ==========================================
       - name: Push User Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/ecommerce-user:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ecommerce-user:latest
 
-
-      # ==========================================
       # 16. Push Admin Image
-      # ==========================================
       - name: Push Admin Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/ecommerce-admin:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ecommerce-admin:latest
 
-
-      # ==========================================
       # 17. Push API Gateway Image
-      # ==========================================
       - name: Push API Gateway Image
-      run: |
-        docker push \
-          ${{ secrets.DOCKER_USERNAME }}/ecommerce-apigateway:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ecommerce-apigateway:latest
 
-
-      # ==========================================
       # 18. Push Eureka Image
-      # ==========================================
       - name: Push Eureka Image
-        run: |
-          docker push \
-            ${{ secrets.DOCKER_USERNAME }}/ecommerce-eureka-registry:latest
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/ecommerce-eureka-registry:latest
