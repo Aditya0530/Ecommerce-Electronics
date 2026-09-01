@@ -10,10 +10,10 @@
 		<relativePath /> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ecommerce.main</groupId>
-	<artifactId>Admin-ServiceDomain</artifactId>
+	<artifactId>Product-ServiceDomain</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>Admin-ServiceDomain</name>
+	<name>Product-ServiceDomain</name>
 	<description>Demo project for Spring Boot</description>
 	<url />
 	<licenses>
