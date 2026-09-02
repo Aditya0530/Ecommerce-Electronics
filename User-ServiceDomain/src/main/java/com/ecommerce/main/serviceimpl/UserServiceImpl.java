@@ -215,73 +215,63 @@ public class UserServiceImpl implements UserService {
 //		}
 //	}
 
-	@Transactional
 	@Override
+	@Transactional
 	public String placeOrder(int userId, int productId, Order order) {
-
 		LOGGER.info("Purchase request by user {} for product {}", userId, productId);
 
-		// 1. Get product from Product Service
 		String productUrl = "http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId;
+		Product productFromService = restTemplate.getForObject(productUrl, Product.class);
 
-		Product product = restTemplate.getForObject(productUrl, Product.class);
-
-		if (product == null) {
-			throw new RuntimeException("Product not found");
-		}
-
-		// 2. Get user
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user ID"));
+		if (productFromService == null) {
+	        throw new RuntimeException(
+	                "Product not found in Product Service"
+	        );
+	    }
 
-		// 3. Check existing order
-		List<Order> existingOrders = getByUserIdProductId(userId, productId);
 
-		if (!existingOrders.isEmpty()) {
+		List<Order> existingOrder = getByUserIdProductId(userId, productId);
+		if (!existingOrder.isEmpty()) {
 			LOGGER.warn("User {} already ordered product {}", userId, productId);
-
+			Order currentOrder = existingOrder.get(0);
+			currentOrder.setTotalAmount(productFromService.getPrice());
+			orderRepository.save(currentOrder);
 			return "You Already Ordered This Product";
+		} else {
+
+			double totalAmount = productFromService.getPrice() * order.getQuantity();
+			double sendAmount = order.getRequestAmount();
+			if (sendAmount == totalAmount) {
+				String paymentMessage = paymentService.processPayment(userId, productId, totalAmount);
+
+				order.setOrderStatus(StatusOrder.CONFIRMED);
+				order.setTotalAmount(totalAmount);
+				order.setDeliverycharges(100);
+				// GET ADDRESS FROM LOGGED-IN USER
+				if (order.getAddress() == null) {
+					throw new RuntimeException("Please add address before placing an order");
+				}
+				order.setProduct(productFromService);
+				user.getProduct().add(productFromService);
+				user.getOrder().add(order);
+
+				userRepository.save(user);
+				LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
+
+				emailService.sendOrderConfirmationEmail(user, order);
+				LOGGER.info("Order confirmation email sent to user {}", userId);
+
+				return paymentMessage + "Order Placed Successfully";
+			} else {
+				order.setOrderStatus(StatusOrder.PENDING);
+				LOGGER.warn("Amount mismatch: Expected ₹{}, Received ₹{} from user {}", totalAmount, sendAmount,
+						userId);
+				return "Payment amount mismatch. Expected: ₹" + totalAmount + ", but received: ₹" + sendAmount
+						+ ". Order not placed.";
+			}
 		}
-
-		// 4. Calculate amount
-		double totalAmount = product.getPrice() * order.getQuantity();
-
-		double sendAmount = order.getRequestAmount();
-
-		// 5. Validate payment amount
-		if (sendAmount != totalAmount) {
-
-			order.setOrderStatus(StatusOrder.PENDING);
-
-			LOGGER.warn("Amount mismatch: Expected ₹{}, Received ₹{} from user {}", totalAmount, sendAmount, userId);
-
-			return "Payment amount mismatch. Expected: ₹" + totalAmount + ", but received: ₹" + sendAmount
-					+ ". Order not placed.";
-		}
-
-		// 6. Process payment
-		String paymentMessage = paymentService.processPayment(userId, productId, totalAmount);
-
-		// 7. Create order
-		order.setOrderStatus(StatusOrder.CONFIRMED);
-		order.setTotalAmount(totalAmount);
-		order.setDeliverycharges(100);
-		order.setProduct(product);
-
-		user.getProduct().add(product);
-		user.getOrder().add(order);
-
-		// 8. Save
-		userRepository.save(user);
-
-		LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
-
-		// 9. Email
-		emailService.sendOrderConfirmationEmail(user, order);
-
-		LOGGER.info("Order confirmation email sent to user {}", userId);
-
-		return paymentMessage + " Order Placed Successfully";
 	}
 
 	@Override
@@ -364,6 +354,13 @@ public class UserServiceImpl implements UserService {
 	public List<Product> getProductByUserId(int userId) {
 
 		return productRepository.getProductsByUserId(userId);
+	}
+
+	@Override
+	public void deleteUser(int userId) {
+		// TODO Auto-generated method stub
+		userRepository.deleteUser(userId);
+		
 	}
 
 }

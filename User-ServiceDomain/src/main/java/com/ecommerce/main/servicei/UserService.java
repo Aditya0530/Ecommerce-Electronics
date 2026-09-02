@@ -46,5 +46,6 @@ public interface UserService {
 
 	public List<Product> getProductByUserId(int userId);
 	
+	public void deleteUser(int userId);
 
 }
