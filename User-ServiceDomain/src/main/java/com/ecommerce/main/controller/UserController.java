@@ -117,4 +117,10 @@ public class UserController {
 		return new ResponseEntity<List<Product>>(getProducts, HttpStatus.OK);
 		
 	}
+	@GetMapping("/getUsers")
+	public ResponseEntity<List<User>> getuserAll(){
+		List<User> allUsers=userService.getAllUsers();
+		return new ResponseEntity<List<User>>(allUsers, HttpStatus.OK);
+		
+	}
 }

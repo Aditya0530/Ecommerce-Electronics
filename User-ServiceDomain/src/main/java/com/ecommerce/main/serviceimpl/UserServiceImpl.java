@@ -62,7 +62,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Object loginAdmin(String username, String password) {
-		if ("Admin".equalsIgnoreCase(username) && "Admin".equalsIgnoreCase(password)) {
+		if ("Admin".equals(username) && "Admin".equals(password)) {
 			return userRepository.findAll();
 
 		} else {
@@ -422,6 +422,12 @@ public class UserServiceImpl implements UserService {
 		// TODO Auto-generated method stub
 		userRepository.deleteUser(userId);
 
+	}
+
+	@Override
+	public List<User> getAllUsers() {
+		
+		return (List<User>) userRepository.findAll();
 	}
 
 }
