@@ -26,5 +26,9 @@ public interface UserRepository extends CrudRepository<User, Integer> {
 	
 	@Query("Select Order o from User u")
 	public List<Order> getOrders();
-
+	
+	@Modifying
+	@Transactional
+	@Query("DELETE FROM User u WHERE u.userId = :id")
+	void deleteUser(@Param("id") int id);
 }

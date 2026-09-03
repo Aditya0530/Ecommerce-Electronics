@@ -104,7 +104,17 @@ public class UserController {
 		userService.saveUser(user);
 		return new ResponseEntity<String>("Update Successful", HttpStatus.OK);
 	}
-	
-	
 
+	@DeleteMapping("/deleteUser/{id}")
+	public ResponseEntity<String> deleteUserEntity(@PathVariable("id") int userId) {
+		userService.deleteUser(userId);
+		return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+	}
+	
+	@GetMapping("/getProduct/{userId}")
+	public ResponseEntity<List<Product>> getProductByUserId(@PathVariable("userId") int userId){
+		List<Product> getProducts=userService.getProductByUserId(userId);
+		return new ResponseEntity<List<Product>>(getProducts, HttpStatus.OK);
+		
+	}
 }

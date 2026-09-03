@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Iterable<Product> getAll() {
-		String url = "http://localhost:9292/product/getAll";
+		String url = "http://PRODUCT-SERVICEDOMAIN/product/getAll";
 		Iterable<Product> response = restTemplate.getForObject(url, Iterable.class);
 		return response;
 	}
@@ -107,88 +107,190 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public Iterable<Product> getByName(String productName) {
-		String url = "http://localhost:9292/product/getByName/" + productName;
+		String url = "http://PRODUCT-SERVICEDOMAIN/product/getByName/" + productName;
 		Iterable<Product> product = restTemplate.getForObject(url, Iterable.class);
 		return product;
 	}
 
 	@Override
+	@Transactional
 	public void addToCart(int userId, int productId) {
 
-		Map<String, Object> productFromProductModule = restTemplate
-				.getForObject("http://localhost:9292/product/getById/" + productId, Map.class);
+		LOGGER.info("Adding product {} to cart for user {}", productId, userId);
+
+		// 1. Get product from Product-Service
+		String url = "http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId;
+
+		Map<String, Object> productFromProductModule = restTemplate.getForObject(url, Map.class);
+
+		if (productFromProductModule == null) {
+			throw new RuntimeException("Product not found");
+		}
+		LOGGER.info("PRODUCT SERVICE RESPONSE: {}", productFromProductModule);
+
+		LOGGER.info("PRODUCT IMAGES OBJECT: {}", productFromProductModule.get("productImages"));
+
+		// 2. Get user
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
-		int newProductId = (Integer) productFromProductModule.get("productId");
 
-		Iterable<Product> existproduct = productRepository.findAll();
-		for (Product product : existproduct) {
+		// 3. Check duplicate product
+		List<Product> existingProducts = productRepository.getProductsByUserId(userId);
 
-			if (product.getProductId() == newProductId) {
-				LOGGER.warn("Duplicate product found in cart for user {}", userId);
-				throw new DuplicateProductFoundException("Product id already present");
+		for (Product product : existingProducts) {
+
+			if (product.getProductId() == productId) {
+
+				throw new DuplicateProductFoundException("Product id already present in your cart");
 			}
 		}
-		
-		
-		// here getting the product quantity available
-	    int quantityAvailable = (Integer) productFromProductModule.get("quantityAvailable");
-	    
-	    if(quantityAvailable <= 0) {
-	        throw new RuntimeException("Product is out of stock");
-	    }
-	    
-	    // here decrease the product quantity available by 1
-	    restTemplate.put("http://localhost:9292/product/updateQuantity/" + (quantityAvailable - 1) + "/" + productId, null);
-		
-		
-		
-	    
-		List<Map<String, Object>> productImages = (List<Map<String, Object>>) productFromProductModule
-				.get("productImages");
 
-		Map<String, Object> productImageMap = productImages.get(0);
-		String imageDataString = (String) productImageMap.get("imageData");
-		byte[] imageData = Base64.getDecoder().decode(imageDataString);
+		// 4. Check stock
+		Integer quantityAvailable = (Integer) productFromProductModule.get("quantityAvailable");
 
+		if (quantityAvailable == null || quantityAvailable <= 0) {
+			throw new RuntimeException("Product is out of stock");
+		}
+
+		// 5. Decrease quantity
+		restTemplate.put(
+				"http://PRODUCT-SERVICEDOMAIN/product/updateQuantity/" + (quantityAvailable - 1) + "/" + productId,
+				null);
+
+		byte[] imageData = null;
+
+		Object productImagesObject = productFromProductModule.get("productImages");
+
+		if (productImagesObject instanceof List<?>) {
+
+			List<?> productImages = (List<?>) productImagesObject;
+
+			if (!productImages.isEmpty()) {
+
+				Object firstImageObject = productImages.get(0);
+
+				if (firstImageObject instanceof Map<?, ?>) {
+
+					Map<?, ?> imageMap = (Map<?, ?>) firstImageObject;
+
+					Object imageDataObject = imageMap.get("imageData");
+
+					if (imageDataObject != null) {
+
+						String imageDataString = imageDataObject.toString();
+
+						imageData = Base64.getDecoder().decode(imageDataString);
+
+						LOGGER.info("Image successfully decoded. Size: {} bytes", imageData.length);
+					}
+				}
+			}
+		}
+
+		if (imageData == null) {
+
+			LOGGER.warn("No image found for product {}", productId);
+		}
+
+		// 7. Create cart Product
 		Product productToUpdate = new Product();
-		productToUpdate.setProductId((Integer) productFromProductModule.get("productId"));
+
+		productToUpdate.setProductId(((Number) productFromProductModule.get("productId")).intValue());
+
 		productToUpdate.setProductName((String) productFromProductModule.get("productName"));
+
 		productToUpdate.setDescription((String) productFromProductModule.get("description"));
+
 		productToUpdate.setBrand((String) productFromProductModule.get("brand"));
-		productToUpdate.setPrice((Double) productFromProductModule.get("price"));
+
+		productToUpdate.setPrice(((Number) productFromProductModule.get("price")).doubleValue());
+
 		productToUpdate.setImage(imageData);
 
+		// 8. Add product to user's cart
 		user.getProduct().add(productToUpdate);
-		userRepository.save(user);
-		LOGGER.info("Product with ID {} added to cart for user {}", productId, userId);
 
+		userRepository.save(user);
+
+		LOGGER.info("Product {} successfully added to cart for user {}", productId, userId);
 	}
+
+//	@Override
+//	@Transactional
+//	public String placeOrder(int userId, int productId, Order order) {
+//		LOGGER.info("Purchase request by user {} for product {}", userId, productId);
+//
+//		String productUrl = "http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId;
+//		Product productFromService = restTemplate.getForObject(productUrl, Product.class);
+//
+//		User user = userRepository.findById(userId)
+//				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user ID"));
+//
+//		Product managedProduct = productRepository.findById(productId)
+//				.orElseThrow(() -> new RuntimeException("Product not found in database"));
+//
+//		List<Order> existingOrder = getByUserIdProductId(userId, productId);
+//		if (!existingOrder.isEmpty()) {
+//			LOGGER.warn("User {} already ordered product {}", userId, productId);
+//			Order currentOrder = existingOrder.get(0);
+//			currentOrder.setTotalAmount(managedProduct.getPrice());
+//			orderRepository.save(currentOrder);
+//			return "You Already Ordered This Product";
+//		} else {
+//
+//			double totalAmount = managedProduct.getPrice() * order.getQuantity();
+//			double sendAmount = order.getRequestAmount();
+//			if (sendAmount == totalAmount) {
+//				String paymentMessage = paymentService.processPayment(userId, productId, totalAmount);
+//
+//				order.setOrderStatus(StatusOrder.CONFIRMED);
+//				order.setTotalAmount(totalAmount);
+//				order.setDeliverycharges(100);
+//				order.setProduct(managedProduct);
+//				user.getProduct().add(managedProduct);
+//				user.getOrder().add(order);
+//
+//				userRepository.save(user);
+//				LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
+//
+//				emailService.sendOrderConfirmationEmail(user, order);
+//				LOGGER.info("Order confirmation email sent to user {}", userId);
+//
+//				return paymentMessage + "Order Placed Successfully";
+//			} else {
+//				order.setOrderStatus(StatusOrder.PENDING);
+//				LOGGER.warn("Amount mismatch: Expected ₹{}, Received ₹{} from user {}", totalAmount, sendAmount,
+//						userId);
+//				return "Payment amount mismatch. Expected: ₹" + totalAmount + ", but received: ₹" + sendAmount
+//						+ ". Order not placed.";
+//			}
+//		}
+//	}
 
 	@Override
 	@Transactional
 	public String placeOrder(int userId, int productId, Order order) {
 		LOGGER.info("Purchase request by user {} for product {}", userId, productId);
 
-		String productUrl = "http://localhost:9292/product/getById/" + productId;
+		String productUrl = "http://PRODUCT-SERVICEDOMAIN/product/getById/" + productId;
 		Product productFromService = restTemplate.getForObject(productUrl, Product.class);
 
 		User user = userRepository.findById(userId)
 				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user ID"));
-
-		Product managedProduct = productRepository.findById(productId)
-				.orElseThrow(() -> new RuntimeException("Product not found in database"));
+		if (productFromService == null) {
+			throw new RuntimeException("Product not found in Product Service");
+		}
 
 		List<Order> existingOrder = getByUserIdProductId(userId, productId);
 		if (!existingOrder.isEmpty()) {
 			LOGGER.warn("User {} already ordered product {}", userId, productId);
 			Order currentOrder = existingOrder.get(0);
-			currentOrder.setTotalAmount(managedProduct.getPrice());
+			currentOrder.setTotalAmount(productFromService.getPrice());
 			orderRepository.save(currentOrder);
 			return "You Already Ordered This Product";
 		} else {
 
-			double totalAmount = managedProduct.getPrice() * order.getQuantity();
+			double totalAmount = productFromService.getPrice() * order.getQuantity();
 			double sendAmount = order.getRequestAmount();
 			if (sendAmount == totalAmount) {
 				String paymentMessage = paymentService.processPayment(userId, productId, totalAmount);
@@ -196,10 +298,12 @@ public class UserServiceImpl implements UserService {
 				order.setOrderStatus(StatusOrder.CONFIRMED);
 				order.setTotalAmount(totalAmount);
 				order.setDeliverycharges(100);
-				order.setProduct(managedProduct);
-				user.getProduct().add(managedProduct);
+				// GET ADDRESS FROM LOGGED-IN USER
+				if (order.getAddress() == null) {
+					throw new RuntimeException("Please add address before placing an order");
+				}
+				order.setProduct(productFromService);
 				user.getOrder().add(order);
-
 				userRepository.save(user);
 				LOGGER.info("Order placed successfully by user {} for product {}", userId, productId);
 
@@ -277,14 +381,28 @@ public class UserServiceImpl implements UserService {
 		return responseMap;
 	}
 
+//	@Override
+//	public void removeFromCart(int userId, int productId) {
+//
+//		User user = userRepository.findById(userId)
+//				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
+//		user.getProduct().removeIf(product -> product.getProductId() == productId);
+//		productRepository.deleteById(productId);
+//
+//	}
 	@Override
+	@Transactional
 	public void removeFromCart(int userId, int productId) {
 
-		User user = userRepository.findById(userId)
-				.orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
-		user.getProduct().removeIf(product -> product.getProductId() == productId);
-		productRepository.deleteById(productId);
+		userRepository.findById(userId).orElseThrow(() -> new UserIdNotFoundException("Please input correct user id"));
 
+		int removed = productRepository.removeProductFromCart(userId, productId);
+
+		if (removed == 0) {
+			throw new RuntimeException("Product not found in user's cart");
+		}
+
+		LOGGER.info("Product {} removed from cart for user {}", productId, userId);
 	}
 
 	@Override
@@ -297,6 +415,13 @@ public class UserServiceImpl implements UserService {
 	public List<Product> getProductByUserId(int userId) {
 
 		return productRepository.getProductsByUserId(userId);
+	}
+
+	@Override
+	public void deleteUser(int userId) {
+		// TODO Auto-generated method stub
+		userRepository.deleteUser(userId);
+
 	}
 
 }
