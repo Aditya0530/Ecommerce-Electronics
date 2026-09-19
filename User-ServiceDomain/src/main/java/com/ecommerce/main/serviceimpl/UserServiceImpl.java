@@ -426,8 +426,56 @@ public class UserServiceImpl implements UserService {
 
 	@Override
 	public List<User> getAllUsers() {
-		
+
 		return (List<User>) userRepository.findAll();
+	}
+
+	@Override
+	public Map<String, Object> viewAllOrders() {
+
+		List<User> allUsers = (List<User>) userRepository.findAll();
+
+		List<Map<String, Object>> listProduct = new ArrayList<>();
+		Map<String, Object> responseMap = new LinkedHashMap<>();
+
+		double totalAmount = 0.0;
+		double deliveryCharges = 0.0;
+
+		for (User user : allUsers) {
+			List<Order> userOrders = user.getOrder();
+			if (userOrders == null)
+				continue;
+
+			for (Order viewOrder : userOrders) {
+				Product product = viewOrder.getProduct();
+				if (product == null)
+					continue; // skip orphaned orders defensively
+
+				Map<String, Object> orderedProduct = new LinkedHashMap<>();
+				orderedProduct.put("productId", product.getProductId());
+				orderedProduct.put("productName", product.getProductName());
+				orderedProduct.put("productImg", product.getImage());
+				orderedProduct.put("productBrand", product.getBrand());
+				orderedProduct.put("productQuantity", viewOrder.getQuantity());
+				orderedProduct.put("deliveryCharges", viewOrder.getDeliverycharges());
+				orderedProduct.put("productPrice", product.getPrice());
+				orderedProduct.put("orderStatus", viewOrder.getOrderStatus());
+				orderedProduct.put("requestAmount", viewOrder.getRequestAmount());
+				orderedProduct.put("orderId", viewOrder.getOrderId());
+				orderedProduct.put("userId", user.getUserId());
+
+				totalAmount += product.getPrice() * viewOrder.getQuantity();
+				deliveryCharges += viewOrder.getDeliverycharges();
+
+				listProduct.add(orderedProduct);
+			}
+		}
+
+		double grandTotal = totalAmount + deliveryCharges;
+
+		responseMap.put("orderSummary", Map.of("grandTotal", grandTotal, "orderedProduct", listProduct));
+
+		return responseMap;
 	}
 
 }

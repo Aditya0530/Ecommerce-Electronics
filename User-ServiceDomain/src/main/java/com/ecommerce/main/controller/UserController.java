@@ -85,6 +85,11 @@ public class UserController {
 		Map<String, Object> mapProduct = userService.viewCart(userId);
 		return new ResponseEntity<>(mapProduct, HttpStatus.OK);
 	}
+	@GetMapping("/view_All")
+	public ResponseEntity<Map<String, Object>> viewAllCart() {
+		Map<String, Object> mapProduct = userService.viewAllOrders();
+		return new ResponseEntity<>(mapProduct, HttpStatus.OK);
+	}
 
 	@DeleteMapping("/remove/{userId}/{productId}")
 	public ResponseEntity<String> removeUserProducts(@PathVariable int userId, @PathVariable int productId) {

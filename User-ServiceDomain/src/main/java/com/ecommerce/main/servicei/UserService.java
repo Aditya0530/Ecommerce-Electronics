@@ -41,6 +41,8 @@ public interface UserService {
 	public void orderStatus(int orderId, StatusOrder orderStatus);
 
 	public Map<String, Object> viewCart(int userId);
+	
+	public Map<String, Object> viewAllOrders();
 
 	public List<Order> getOrderByUserId(int userId);
 
