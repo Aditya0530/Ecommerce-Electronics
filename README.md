@@ -1,19 +1,18 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 # Ecommerce-UserService
 =======
-<<<<<<< HEAD
+
 # Ecommerce-Project
 =======
-<<<<<<< HEAD
+
 # Eureka-Registry
 Eureka Server To Register Services
 =======
-<<<<<<< HEAD
+
 # API-Gateway
 Spring Boot API Gateway using Spring Cloud Gateway and Eureka
 =======
-<<<<<<< HEAD
+
 # Ecommerce-Microservices
 =======
 # Ecommerce-Project
